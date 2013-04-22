@@ -1,0 +1,11 @@
+*.pyo
+*.pyc
+*.egg-info
+*.cache
+*.orig
+*.swp
+*.rej
+._*
+*~
+*.o
+.build
