@@ -20,6 +20,8 @@ setup(name='pyallris',
         "lxml",
         "requests",
         "pymongo",
+        "cssselect",
+        "mongogogo",
       ],
       entry_points="""
       """,
