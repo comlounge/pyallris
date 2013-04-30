@@ -8,23 +8,29 @@ from utils import parse_date
 import pytz
 utc = pytz.utc
 
-class SitzungsParser(object):
+from base import RISXMLParser
+
+class SitzungsParser(RISXMLParser):
     """parse the list of sitzungen for 1 year back from now"""
 
-    base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
-    to_url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-    tzinfo = timezone('Europe/Berlin')
-
-    def __init__(self, months = 12):
+    def __init__(self, url, 
+            base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s",
+            to_url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s",
+            tzinfo = timezone('Europe/Berlin'), 
+            months = 12):
         self.utc = pytz.utc
-        self.tzinfo = timezone('Europe/Berlin')
-        self.coll = pymongo.Connection().ratsinfo.sitzungen
-        self.parser = etree.XMLParser(recover=True)
+        self.tzinfo = tzinfo
+        self.base_url = base_url
+        self.to_url = to_url
+
+        # this will be moved to the second stage
+        #self.coll = pymongo.Connection().ratsinfo.sitzungen
 
         end = datetime.date.today()
-        start = end - datetime.timedelta(months*31)
+        start = end - datetime.timedelta(months*31) # kinda rough computation here
 
         self.url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
+        super(SitzungsParser, self).__init__(self, url)
 
     def process(self):
         """process sitzungen"""
