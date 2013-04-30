@@ -1,43 +1,10 @@
 from lxml import etree
-from lxml import objectify
 from lxml.cssselect import CSSSelector
-from StringIO import StringIO
 import requests
 import urlparse
 import datetime
 import hashlib
-
-class RISHTMLParser(object):
-    """base parser for RIS information contained in HTML pages.
-
-    We do use this parser when there is no XML output available. 
-    This base class mainly reads and pre-parses the content. 
-    This will automatically open up the main url you give to it and 
-    will pass the tree over to ``process()``. 
-
-    """
-
-    def __init__(self, url, base_url = "/"):
-        """initialize the RIS HTML parser with the base URL of the system and the URL to parse
-
-        :param url: The main URL to start parsing from.
-        :param base_url: The base url of the system. This can be used to construct absolute URLs
-            as the system only provides relative URLs in it's HTML source
-        """
-
-        self.base_url = base_url
-        self.url = url
-
-    def parse(self, url):
-        """start up a parser and return the tree for further processing"""
-        response = requests.get(url)
-        parser = etree.HTMLParser()
-        return etree.parse(StringIO(response.text), parser)
-
-    def __call__(self):
-        """start processing the HTML page"""
-        tree = self.parse(url)
-        return self.process(tree)
+from base import *
 
 class CommitteeParser(RISHTMLParser):
     """parser for committee data"""
@@ -96,14 +63,18 @@ class CommitteeParser(RISHTMLParser):
 
 
                 # now get the member list
-                data = self.process_committee(url)
+                data = self.process_committee(url, name=name)
                 record.update(data)
                 result.append(record)
         return result
 
-    def process_committee(self, url):
-        """process one committee start page"""
-        print "** getting ",url
+    def process_committee(self, url, name = u''):
+        """process one committee start page
+
+        :param url: url of the committee page
+        :param name: name of the committee, only used for debugging purposes
+        
+        """
         tree = self.parse(url)
 
         members = []
@@ -159,7 +130,7 @@ class CommitteeParser(RISHTMLParser):
         # get the members (we only need the ids and the start dates)
         all_lines = members_table.findall("tr")
         if len(all_lines)==4:
-            print "skipping empty committee"
+            print "skipping empty committee %s at %s" %(name, url)
             return {}
         for line in members_table.findall("tr")[2:-1]:
             pline = self.kpsel(line)
@@ -188,12 +159,7 @@ if __name__ == "__main__":
 
     p = CommitteeParser(url, base_url)
     pprint.pprint(p())
-    print p()
 
-    # parse one committee
-    #p = CommitteeParser(url, base_url)
-    #url = "http://ratsinfo.aachen.de/bi/au020.asp?AULFDNR=12"
-    #p.process_committee(url)
 
 
 
