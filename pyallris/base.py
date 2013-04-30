@@ -1,8 +1,20 @@
 import requests
-from lxml import etree
+from lxml import etree, html
 from StringIO import StringIO
 
-__all__ = ['RISParser']
+__all__ = ['RISParser', 'ParseError']
+
+class ParseError(Exception):
+    """exception being raised when we encounter some error while parsing"""
+
+    def __init__(self, url, msg):
+        self.msg = msg
+        self.url = url
+
+    def __str__(self):
+        return "<Parse Error in %s: %s>" %(self.url, self.msg)
+
+
 
 class RISParser(object):
     """base parser for RIS information contained in HTML pages and XML output.
@@ -26,8 +38,9 @@ class RISParser(object):
     def parse_html(self, url):
         """start up a parser and return the tree for further processing"""
         response = requests.get(url)
-        parser = etree.HTMLParser()
-        return etree.parse(StringIO(response.text), parser)
+        return html.fromstring(response.text)
+        #parser = etree.HTMLParser()
+        #return etree.parse(StringIO(response.text), parser)
 
     def __call__(self):
         """start processing the HTML page"""
