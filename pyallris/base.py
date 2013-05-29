@@ -1,6 +1,7 @@
 import requests
 from lxml import etree, html
 from StringIO import StringIO
+import pymongo
 
 __all__ = ['RISParser', 'ParseError']
 
@@ -24,7 +25,7 @@ class RISParser(object):
 
     """
 
-    def __init__(self, url, base_url = "/"):
+    def __init__(self, url, base_url = "/", db="ratsinfo"):
         """initialize the RIS parser with the base URL of the system (for computing absolute URLs) and the URL to parse
 
         :param url: The main URL to start parsing from.
@@ -34,18 +35,12 @@ class RISParser(object):
 
         self.base_url = base_url
         self.url = url
+        self.db = pymongo.Connection()[db]
 
     def parse_html(self, url):
         """start up a parser and return the tree for further processing"""
         response = requests.get(url)
         return html.fromstring(response.text)
-        #parser = etree.HTMLParser()
-        #return etree.parse(StringIO(response.text), parser)
-
-    def __call__(self):
-        """start processing the HTML page"""
-        tree = self.parse(self.url)
-        return self.process(tree)
 
     def parse_xml(self, url):
         """parse an XML file and return the tree"""
