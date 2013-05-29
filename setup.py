@@ -17,12 +17,16 @@ setup(name='pyallris',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+        "pytz",
         "lxml",
         "requests",
         "pymongo",
         "cssselect",
         "mongogogo",
+        "starflyer",
       ],
       entry_points="""
+      [paste.app_factory]
+      main = pyallris.web.app:app
       """,
       )
