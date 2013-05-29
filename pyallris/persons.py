@@ -88,6 +88,8 @@ class PersonParser(RISParser):
                 print "** WARNING: person %s %s has no link" %(person['first_name'], person['last_name'])
                 print
             personen.append(person)
+            self.db.personen.remove()   # remove old stuff for now
+            self.db.personen.insert(personen)
 
         return personen
        

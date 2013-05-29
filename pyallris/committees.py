@@ -6,27 +6,37 @@ import datetime
 import hashlib
 from base import *
 
-class CommitteeParser(RISHTMLParser):
+class CommitteeParser(RISParser):
     """parser for committee data"""
 
-    linesel = CSSSelector('table.tl1 tr.zl11')
+    linesel = CSSSelector('table.tl1 tr.zl11, table.tl1 tr.zl12')
     ausel = CSSSelector('input[name="AULFDNR"]')
     silfsel = CSSSelector('input[name="SILFDNR"]')
     kpsel = CSSSelector('input[name="KPLFDNR"]')
 
-    def process(self, tree):
+    def __call__(self):
         """process the HTML source"""
         result = []
 
+        tree = self.parse_html(self.url)
+
         for i in self.linesel(tree):
             tds = i.findall("td")
+            if len(tds) == 1:
+                # from this line on we only get retired committees and we skip them now.
+                break
             if len(tds) == 8: 
                 
                 # base data
                 form = tds[0]
-                committee_id = int(self.ausel(form)[0].get("value"))
+                try:
+                    committee_id = int(self.ausel(form)[0].get("value"))
+                except:
+                    print "found not form in table row"
+                    continue
                 url = urlparse.urljoin(self.base_url, tds[1][0].get("href"))
                 name = tds[1][0].text.strip()
+                print "processing committee", name
 
                 # additional data which we can also derive from other sources
                 members = tds[2].text
@@ -66,6 +76,8 @@ class CommitteeParser(RISHTMLParser):
                 data = self.process_committee(url, name=name)
                 record.update(data)
                 result.append(record)
+            self.db.committees.remove()
+            self.db.committees.insert(result)
         return result
 
     def process_committee(self, url, name = u''):
@@ -75,7 +87,7 @@ class CommitteeParser(RISHTMLParser):
         :param name: name of the committee, only used for debugging purposes
         
         """
-        tree = self.parse(url)
+        tree = self.parse_html(url)
 
         members = []
         data = {}
@@ -130,12 +142,14 @@ class CommitteeParser(RISHTMLParser):
         # get the members (we only need the ids and the start dates)
         all_lines = members_table.findall("tr")
         if len(all_lines)==4:
-            print "skipping empty committee %s at %s" %(name, url)
+            print "    skipping empty committee %s at %s" %(name, url)
             return {}
         for line in members_table.findall("tr")[2:-1]:
             pline = self.kpsel(line)
             if len(pline)==0:
-                person_id = line[2]
+                #person_id = line[2]
+                print "    skipping member without link"
+                continue
             else:
                 person_id = int(pline[0].get("value"))
             if line[-1].text is not None and line[-1].text!="":
@@ -153,12 +167,10 @@ class CommitteeParser(RISHTMLParser):
 if __name__ == "__main__":
 
     base_url = "http://ratsinfo.aachen.de/bi/"
-    url = "http://ratsinfo.aachen.de/bi/au010.asp"
-
-    import pprint
+    url = "http://ratsinfo.aachen.de/bi/au010.asp?SORTVON=0&SORTBIS=190"
 
     p = CommitteeParser(url, base_url)
-    pprint.pprint(p())
+    p()
 
 
 
