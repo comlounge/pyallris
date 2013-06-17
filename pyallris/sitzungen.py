@@ -8,34 +8,31 @@ from utils import parse_date
 import pytz
 utc = pytz.utc
 
-from base import RISXMLParser
+from base import RISParser
 
-class SitzungsParser(RISXMLParser):
+class SitzungsParser(RISParser):
     """parse the list of sitzungen for 1 year back from now"""
 
-    def __init__(self, url, 
-            base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s",
-            to_url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s",
+    def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
             months = 12):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        self.base_url = base_url
-        self.to_url = to_url
+        print base_url
+        super(SitzungsParser, self).__init__(url, base_url = base_url)
 
         # this will be moved to the second stage
-        #self.coll = pymongo.Connection().ratsinfo.sitzungen
+        self.db.meetings.remove()
 
         end = datetime.date.today()
         start = end - datetime.timedelta(months*31) # kinda rough computation here
 
-        self.url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
-        super(SitzungsParser, self).__init__(self, url)
+        self.timerange_url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
 
     def process(self):
         """process sitzungen"""
         parser = etree.XMLParser(recover=True)
-        r = requests.get(self.url)
+        r = requests.get(self.timerange_url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
 
@@ -54,14 +51,13 @@ class SitzungsParser(RISXMLParser):
             except:
                 elem['ERROR'] = True
             elem['_id'] = int(elem['silfdnr'])
-            self.coll.save(elem)
+            self.db.meetings.save(elem)
 
         return sitzungen
 
     def process_tagesordnung(self, silfdnr):
         """process tagesordnung for sitzung"""
-        url = self.to_url %silfdnr
-        print url
+        url = self.url %silfdnr
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
@@ -91,7 +87,9 @@ class SitzungsParser(RISXMLParser):
         return record
 
 
-sp = SitzungsParser()
+url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+sp = SitzungsParser(url, base_url = base_url)
 sp.process()
 #import pprint
 #print pprint.pprint(sp.process())

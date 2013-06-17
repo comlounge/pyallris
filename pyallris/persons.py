@@ -201,22 +201,3 @@ if __name__ == "__main__":
     #person = {'_id' : 10}
     #pprint.pprint(p.get_person_details(person))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
