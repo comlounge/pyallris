@@ -10,16 +10,15 @@ utc = pytz.utc
 
 from base import RISParser
 
-class SitzungsParser(RISParser):
-    """parse the list of sitzungen for 1 year back from now"""
+class MeetingParser(RISParser):
+    """parse the list of meetings for 1 year back from now"""
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
             months = 12):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        print base_url
-        super(SitzungsParser, self).__init__(url, base_url = base_url)
+        super(MeetingParser, self).__init__(url, base_url = base_url)
 
         # this will be moved to the second stage
         self.db.meetings.remove()
@@ -30,67 +29,65 @@ class SitzungsParser(RISParser):
         self.timerange_url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
 
     def process(self):
-        """process sitzungen"""
+        """process meetings"""
         parser = etree.XMLParser(recover=True)
         r = requests.get(self.timerange_url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
 
-        sitzungen = []
         for item in root[1].iterchildren():
-            elem = {}
+            meeting = {}
             for e in item.iterchildren():
-                elem[e.tag] = e.text
+                meeting[e.tag] = e.text
 
-            elem['start_date'] = parse_date(elem['sisbvcs'])
-            elem['end_date'] = parse_date(elem['sisevcs'])
-            elem['tz_start_date'] = parse_date(elem['sisbvcs'], tzinfo=utc).astimezone(self.tzinfo)
-            elem['tz_end_date'] = parse_date(elem['sisevcs'], tzinfo=utc).astimezone(self.tzinfo)
+            meeting['start_date'] = parse_date(meeting['sisbvcs'])
+            meeting['end_date'] = parse_date(meeting['sisevcs'])
+            meeting['tz_start_date'] = parse_date(meeting['sisbvcs'], tzinfo=utc).astimezone(self.tzinfo)
+            meeting['tz_end_date'] = parse_date(meeting['sisevcs'], tzinfo=utc).astimezone(self.tzinfo)
+            silfdnr = meeting['silfdnr']
             try:
-                elem['to'] = self.process_tagesordnung(elem['silfdnr'])
-            except:
-                elem['ERROR'] = True
-            elem['_id'] = int(elem['silfdnr'])
-            self.db.meetings.save(elem)
+                result = self.process_agenda(silfdnr)
+                meeting.update(result)
+            except Exception, e:
+                meeting['ERROR'] = True
+            meeting['_id'] = int(meeting['silfdnr'])
+            self.db.meetings.save(meeting)
 
-        return sitzungen
-
-    def process_tagesordnung(self, silfdnr):
+    def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
+        print url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
-        root = etree.fromstring(xml, parser=self.parser)
+        parser = etree.XMLParser(recover=True)
+        root = etree.fromstring(xml, parser=parser)
 
         record = {'tops' : []}
+
+        special = {}
+        for item in root[1].iterchildren():
+            special[item.tag] = item.text
+        record['special'] = special
 
         head = {}
         for item in root[1].iterchildren():
             head[item.tag] = item.text
         record['head'] = head
 
-        meta = {}
-        for item in root[1].iterchildren():
-            meta[item.tag] = item.text
-        record['meta'] = meta
-
-        for item in root[0].iterchildren():
+        for item in root[2].iterchildren():
             elem = {}
             for e in item.iterchildren():
                 elem[e.tag] = e.text
 
             record['tops'].append(elem)
 
-        record['_id'] = int(record['head']['silfdnr'])
         return record
 
 
 url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
 base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
-sp = SitzungsParser(url, base_url = base_url)
+sp = MeetingParser(url, base_url = base_url)
 sp.process()
-#import pprint
-#print pprint.pprint(sp.process())
 
 

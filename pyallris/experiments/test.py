@@ -30,7 +30,7 @@ record['head'] = head
 
 meta = {}
 for item in root['special'].iterchildren():
-    meta[item.tag] = item.text
+meta[item.tag] = item.text
 record['meta'] = meta
 
 for item in root['list'].iterchildren():
