@@ -2,15 +2,33 @@
 
 {% block main_content %}
 <ul>
-    {% for meeting in meetings %}
 
-    <li>
-        <a href="{{url_for("meeting", silfdnr=meeting.silfdnr)}}">
-        Nr.:{{meeting.silfdnr}} {{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
-        </a>
-    </li>
 
-    {% endfor %}
+    <table class="table table-bordered table-hover">
+        <caption>Sitzungen</caption>
+        <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Name</th>
+            <th>Kürzel</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for meeting in meetings %}
+            <tr>
+                <td>
+                    {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
+                </td>
+                <td>
+                    <a href="{{url_for("meeting", silfdnr=meeting.silfdnr)}}">{{meeting.sitext}}</a>
+                </td>
+                <td>
+                    {{meeting.siname}}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </ul>
 
 {% endblock %}
