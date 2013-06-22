@@ -19,15 +19,14 @@ Raum: {{meeting.raname}}
 Ort: {{meeting.raort}}
 
 <h3>Tagesordnungspunkte</h3>
-    <ul>
         {% for item in meeting.tops %}
-        <li>
-            <div class="{{" public " if item.toostKurz == 'Ö'}}">
-                TOP {{item.section}}: {{item.toptext}}
-            </div>
-        </li>
+            <h4>{{item.section}}: {{item.toptext}} 
+            {% if item.toostKurz != 'Ö' %}
+                <span class="label label-warning">nicht öffentlich</span></h4>
+            {% endif %}
+            {{ top_infos[item.tolfdnr].transcript }}
+            <hr>
         {% endfor %}
-    </ul>
 {% endblock %}
 
 
