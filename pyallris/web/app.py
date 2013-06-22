@@ -12,6 +12,7 @@ class ALLRIS(Application):
 
     routes = [
         URL("/",                "home",         handlers.Homepage),
+        URL("/sitzungen",       "sitzungen",    handlers.Sitzungen),
         #URL("/p",               "persons",      handlers.PersonOverview),
         #URL("/p/<pid>",         "person",       handlers.PersonDetails),
         #URL("/c",               "committees",   handlers.CommitteeOverview),

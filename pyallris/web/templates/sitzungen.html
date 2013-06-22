@@ -1,0 +1,13 @@
+{% extends "master.html" %}
+
+{% block main_content %}
+    <ul>
+    {% for s in sitzungen %}
+        <li>{{s.tops|length}}</li>
+        
+    {% endfor %}
+    </ul>
+
+{% endblock %}
+
+
