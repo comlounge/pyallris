@@ -9,3 +9,14 @@
 *~
 *.o
 .build
+/.idea/dictionaries/ant.xml
+/.idea/encodings.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/.name
+/.idea/other.xml
+/.idea/pyallris.iml
+/.idea/scopes/scope_settings.xml
+/.idea/testrunner.xml
+/.idea/vcs.xml
+/.idea/workspace.xml

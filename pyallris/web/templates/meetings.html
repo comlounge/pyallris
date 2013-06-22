@@ -1,18 +1,17 @@
 {% extends "master.html" %}
 
 {% block main_content %}
-    <ul>
+<ul>
     {% for meeting in meetings %}
-        <li>{{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
-            <ul>
-                {% for item in meeting.tops %}
-                    <li>{{item.toptext}}
-                {% endfor %}
-            </ul>
-        </li>
-        
+
+    <li>
+        <a href="{{url_for("meeting", silfdnr=meeting.silfdnr)}}">
+        Nr.:{{meeting.silfdnr}} {{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
+        </a>
+    </li>
+
     {% endfor %}
-    </ul>
+</ul>
 
 {% endblock %}
 

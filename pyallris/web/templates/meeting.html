@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+
+{% block main_content %}
+
+
+
+        Nr.:{{meeting.silfdnr}} {{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
+        <ul>
+            {% for item in meeting.tops %}
+            <li>
+
+                <div class="{{" public " if item.toostKurz == 'Ö'}}">
+
+                TOP {{item.tofnum }}: {{item.toptext}}
+
+
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+
+{% endblock %}
+
+

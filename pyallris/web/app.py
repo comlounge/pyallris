@@ -11,8 +11,9 @@ class ALLRIS(Application):
     }
 
     routes = [
-        URL("/",                "home",         handlers.Homepage),
-        URL("/meetings",        "meetings",     handlers.Meetings),
+        URL("/",                    "home",         handlers.Homepage),
+        URL("/meetings",            "meetings",     handlers.Meetings),
+        URL("/meetings/<silfdnr>",  "meeting",      handlers.Meeting),
     ]
 
     modules = [
