@@ -1,24 +1,33 @@
 {% extends "master.html" %}
 
 {% block main_content %}
+<h2>Nr.:{{meeting.silfdnr}} {{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}</h2>
+<h3>Allgemeine Informationen</h3>
+</br>
+Gremium: {{meeting.grname}}
+</br>
+Datum: {{meeting.nowDate}}
+</br>
+Status: {{meeting.siost}}
+</br>
+Zeit: {{meeting.sisb}} - {{meeting.sise}}
+</br>
+Anlass: {{meeting.saname}}
+</br>
+Raum: {{meeting.raname}}
+</br>
+Ort: {{meeting.raort}}
 
-
-
-        Nr.:{{meeting.silfdnr}} {{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
-        <ul>
-            {% for item in meeting.tops %}
-            <li>
-
-                <div class="{{" public " if item.toostKurz == 'Ö'}}">
-
-                TOP {{item.tofnum }}: {{item.toptext}}
-
-
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-
+<h3>Tagesordnungspunkte</h3>
+    <ul>
+        {% for item in meeting.tops %}
+        <li>
+            <div class="{{" public " if item.toostKurz == 'Ö'}}">
+                TOP {{item.section}}: {{item.toptext}}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
 {% endblock %}
 
 

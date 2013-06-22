@@ -50,6 +50,7 @@ class MeetingParser(RISParser):
                 meeting.update(result)
             except Exception, e:
                 meeting['ERROR'] = True
+                print e
             meeting['_id'] = int(meeting['silfdnr'])
             self.db.meetings.save(meeting)
 
@@ -79,6 +80,12 @@ class MeetingParser(RISParser):
             elem = {}
             for e in item.iterchildren():
                 elem[e.tag] = e.text
+
+
+
+            section = [elem['tofnum'], elem['tofunum'], elem['tofuunum']]
+            section = [x for x in section if x!="0"]
+            elem['section'] = ".".join(section)
 
             record['tops'].append(elem)
 
