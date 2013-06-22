@@ -83,7 +83,6 @@ class SitzungsParser(RISParser):
             record['tops'].append(elem)
 
         record['_id'] = int(record['head']['silfdnr'])
-        print record
         return record
 
 
