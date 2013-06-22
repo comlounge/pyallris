@@ -12,10 +12,12 @@ from base import RISParser
 
 class MeetingParser(RISParser):
     """parse the list of meetings for 1 year back from now"""
+    
+    agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 1):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
         super(MeetingParser, self).__init__(url, base_url = base_url)
@@ -56,7 +58,6 @@ class MeetingParser(RISParser):
     def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
-        print url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
@@ -81,9 +82,7 @@ class MeetingParser(RISParser):
                 elem[e.tag] = e.text
 
             record['tops'].append(elem)
-
         return record
-
 
 url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
 base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
