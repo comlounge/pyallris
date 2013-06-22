@@ -1,0 +1,19 @@
+{% extends "master.html" %}
+
+{% block main_content %}
+    <ul>
+    {% for meeting in meetings %}
+        <li>{{meeting.sitext}}, {{meeting.start_date.strftime('%d.%m.%Y %H:%M')}}
+            <ul>
+                {% for item in meeting.tops %}
+                    <li>{{item.toptext}}
+                {% endfor %}
+            </ul>
+        </li>
+        
+    {% endfor %}
+    </ul>
+
+{% endblock %}
+
+

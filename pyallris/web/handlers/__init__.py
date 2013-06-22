@@ -1,2 +1,2 @@
 from homepage import Homepage
-from sitzungen import Sitzungen
+from meetings import Meetings
