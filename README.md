@@ -31,9 +31,10 @@ some experiments in the `experiments/` folder.
 
 ### Ubuntu 12.04 installation
  
-Install python 2.7:
+Install python 2.7 and some libs:
 
     sudo apt-get install python2.7-dev
+    sudo apt-get install libxml2-dev libxslt-dev
 
 Install the mongo dbms:
 
@@ -59,15 +60,15 @@ Initialize the bootstrap git submodule:
     git submodule init
     git submodule update
 
+Initialize:
+
+    python setup.py develop
+
 Now you can run the scrapers with:
    
     python sitzungen.py 
     python meetings.py 
     python persons.py 
-
-To start the server run:
-
-    python setup.py develop
 
 ## Notice
 Please note that the URLs in use are right now hard coded for the ALLRIS in **Aachen**. This might
