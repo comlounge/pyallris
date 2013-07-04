@@ -64,7 +64,7 @@ class DocumentParser(RISParser):
 
         # Beratungsfolge-Table checken
         table = self.table_css(doc)[0] # lets hope we always have this table
-        data = {}
+        data = {'_id' : document_id}
         for line in table:
             headline = line[0].text
             if headline:
@@ -93,12 +93,10 @@ class DocumentParser(RISParser):
                 link = tr[2][0]
                 href = link.attrib["href"]
                 name = link.text
-                print nummer, name, href
+                # TODO: save it
             
-
-
         import pprint
-        #pprint.pprint(data)
+        pprint.pprint(data)
         print
         return
 
