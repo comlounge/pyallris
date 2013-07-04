@@ -45,6 +45,7 @@ class DocumentParser(RISParser):
         agenda_items = self.db.agenda_items.find()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         #self.process_document("11066")
+        #self.process_document("11057")
         #self.process_document("11199") # this has attachments
         #return
         for document_id in document_ids:
@@ -89,6 +90,7 @@ class DocumentParser(RISParser):
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
         self.db.documents.insert(data)
+        time.sleep(1)
 
         return # we do attachments later, for now we save that stuff without
 
@@ -120,19 +122,28 @@ class DocumentParser(RISParser):
                 i=i+1
                 continue
 
-            # now we need to parse items which sometimes go over 2 lines. item == None means that we have line #1
-            if item is None:
+            """
+            here we need to parse the actual list which can have different forms. A complex example
+            can be found at http://ratsinfo.aachen.de/bi/vo020.asp?VOLFDNR=10822
+            The first line is some sort of headline with the committee in question and the type of consultation.
+            After that 0-n lines of detailed information of meetings with a date, transscript and decision.
+            The first line has 3 columns (thanks to colspan) and the others have 7.
 
+            Here we make every meeting a separate entry, we can group them together later again if we want to.
+            """
+            # now we need to parse the actual list
+            # those lists
+
+            if len(line) == 3:
                 # the order is "color/status", name of committee / link to TOP, more info
                 status = line[0].attrib['title'].lower()
+                # we define a head dict here which can be shared for the other lines
+                # once we find another head line we will create a new one here
                 item = {
                     'status'    : status,               # color coded status, like "Bereit", "Erledigt"
                     'committee' : line[1].text.strip(), # name of committee, e.g. "Finanzausschuss", unfort. without id
                     'action'    : line[2].text.strip(), # e.g. "Kenntnisnahme", "Entscheidung"
                 }
-                if status == "bereit": # here we don't have any further information
-                    result.append(item)
-                    item = None
             else:
                 # this is about line 2 with lots of more stuff to process
                 item['date'] = datetime.datetime.strptime(line[1].text.strip(), "%d.%m.%Y")
@@ -146,7 +157,6 @@ class DocumentParser(RISParser):
                     toplfdnr = form[0].attrib['value']
                 item['toplfdnr'] = toplfdnr                     # actually the id of the transcript 
                 result.append(item)
-                item = None
             i=i+1
         return result
             
