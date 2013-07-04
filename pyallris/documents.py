@@ -35,7 +35,7 @@ class DocumentParser(RISParser):
         super(DocumentParser, self).__init__(url)
 
         # this will be moved to the second stage
-        self.db.documents.remove()
+        #self.db.documents.remove()
 
     def process(self):
         """process documents"""
@@ -45,8 +45,8 @@ class DocumentParser(RISParser):
         agenda_items = self.db.agenda_items.find()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         #self.process_document("11066")
-        self.process_document("11199") # this has attachments
-        return
+        #self.process_document("11199") # this has attachments
+        #return
         for document_id in document_ids:
             self.process_document(document_id)
         return
@@ -56,6 +56,11 @@ class DocumentParser(RISParser):
 
         :param document_id: id of document to parse
         """
+
+        count = self.db.documents.find({'_id' : str(document_id)}).count()
+        if count > 0: 
+            print "%s already read" %document_id
+            return
         url = self.url %document_id
         print url
 
@@ -83,7 +88,9 @@ class DocumentParser(RISParser):
         # the actual text comes after the table in a div but it's not valid XML or HTML this using regex
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
-        print len(docs)
+        self.db.documents.insert(data)
+
+        return # we do attachments later, for now we save that stuff without
 
         # get the attachments if possible
         attachments = self.attachments_css(doc)
@@ -128,7 +135,7 @@ class DocumentParser(RISParser):
                     item = None
             else:
                 # this is about line 2 with lots of more stuff to process
-                item['date'] = time.strptime(line[1].text.strip(), "%d.%m.%Y")
+                item['date'] = datetime.datetime.strptime(line[1].text.strip(), "%d.%m.%Y")
                 form = line[2][0] # form with silfdnr and toplfdnr but only in link (action="to010.asp?topSelected=57023")
                 item['silfdnr'] = form[0].attrib['value']
                 item['meeting'] = line[3][0].text.strip()       # full name of meeting, e.g. "A/31/WP.16 öffentliche/nichtöffentliche Sitzung des Finanzausschusses"
