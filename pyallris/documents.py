@@ -47,23 +47,25 @@ class DocumentParser(RISParser):
         #self.process_document("11066")
         #self.process_document("11057")
         #self.process_document("11199") # this has attachments
-        #return
+        #self.process_document("11136", True) # has some problem reading a missing TO link
         for document_id in document_ids:
             self.process_document(document_id)
         return
 
-    def process_document(self, document_id):
+    def process_document(self, document_id, force = False):
         """process a single document
 
         :param document_id: id of document to parse
+        :param force: if True then reread the document regardless of whether 
+            we have it already in the db or not
         """
 
         count = self.db.documents.find({'_id' : str(document_id)}).count()
-        if count > 0: 
+        if count > 0 and not force: 
             print "%s already read" %document_id
             return
         url = self.url %document_id
-        print url
+        print "reading", url
 
         self.response = response = requests.get(url)
         doc = html.fromstring(response.text)
@@ -89,7 +91,7 @@ class DocumentParser(RISParser):
         # the actual text comes after the table in a div but it's not valid XML or HTML this using regex
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
-        self.db.documents.insert(data)
+        self.db.documents.save(data)
         time.sleep(1)
 
         return # we do attachments later, for now we save that stuff without
@@ -147,9 +149,15 @@ class DocumentParser(RISParser):
             else:
                 # this is about line 2 with lots of more stuff to process
                 item['date'] = datetime.datetime.strptime(line[1].text.strip(), "%d.%m.%Y")
-                form = line[2][0] # form with silfdnr and toplfdnr but only in link (action="to010.asp?topSelected=57023")
-                item['silfdnr'] = form[0].attrib['value']
-                item['meeting'] = line[3][0].text.strip()       # full name of meeting, e.g. "A/31/WP.16 öffentliche/nichtöffentliche Sitzung des Finanzausschusses"
+                if len(line[2]):
+                    form = line[2][0] # form with silfdnr and toplfdnr but only in link (action="to010.asp?topSelected=57023")
+                    item['silfdnr'] = form[0].attrib['value']
+                    item['meeting'] = line[3][0].text.strip()       # full name of meeting, e.g. "A/31/WP.16 öffentliche/nichtöffentliche Sitzung des Finanzausschusses"
+                else:
+                    item['silfdnr'] = None # no link to TOP. should not be possible but happens (TODO: Bugreport?)
+                    item['meeting'] = line[3].text.strip()   # here we have no link but the text is in the TD directly
+                    item['PYALLRIS_WARNING'] = "the agenda item in the consultation list on the web page does not contain a link to the actual meeting"
+                    print "WARNING:", item['PYALLRIS_WARNING']
                 item['decision'] = line[4].text.strip()         # e.g. "ungeändert beschlossen"
                 toplfdnr = None
                 if len(line[6]) > 0:
