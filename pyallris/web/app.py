@@ -1,6 +1,7 @@
 from starflyer import Application, URL
 from sfext.mongo import mongodb
 import handlers
+import api
 
 
 class ALLRIS(Application):
@@ -18,6 +19,7 @@ class ALLRIS(Application):
 
     modules = [
         mongodb(mongodb_name = "ratsinfo"),
+        api.api_module(),
     ]
 
 
