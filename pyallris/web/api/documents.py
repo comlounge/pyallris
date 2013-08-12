@@ -31,7 +31,7 @@ class Documents(Handler):
                 'ERROR': {"$exists": False},
                 'last_discussed' : {"$gte" : date_from, "$lte" : date_to},
             } 
-        ).sort("start_date", pymongo.DESCENDING ).limit(limit).skip(offset)
+        ).sort("last_discussed", pymongo.DESCENDING ).limit(limit).skip(offset)
 
         # generate metadata
         count = documents.count()
