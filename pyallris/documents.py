@@ -7,12 +7,15 @@ import pytz
 from pytz import timezone
 import time
 import pytz
+import pprint
 utc = pytz.utc
 
 from base import RISParser
 import re
 
 body_re = re.compile("<?xml .*<body[ ]*>(.*)</body>") # find everything inside a body of a subdocument
+
+TIME_MARKER = datetime.datetime(1903,1,1) # marker for no date being found
 
 class DocumentParser(RISParser):
     """"""
@@ -37,19 +40,21 @@ class DocumentParser(RISParser):
         # this will be moved to the second stage
         #self.db.documents.remove()
 
-    def process(self):
+    def process(self, force = False):
         """process documents"""
 
         # get all the ids of the documents we need to parse
      
         agenda_items = self.db.agenda_items.find()
+        print "processing %s agenda items" %agenda_items.count()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
+        print "processing %s documents" %len(document_ids)
         #self.process_document("11066")
         #self.process_document("11057")
         #self.process_document("11199") # this has attachments
         #self.process_document("11136", True) # has some problem reading a missing TO link
         for document_id in document_ids:
-            self.process_document(document_id)
+            self.process_document(document_id, force = force)
         return
 
     def process_document(self, document_id, force = False):
@@ -72,25 +77,38 @@ class DocumentParser(RISParser):
 
         # Beratungsfolge-Table checken
         table = self.table_css(doc)[0] # lets hope we always have this table
-        data = {'_id' : document_id}
+        data = {
+            '_id' : document_id,
+            'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
+            'last_updated'   : datetime.datetime.now(),# for our own reference
+        }
+        consultation_list_start = False
         for line in table:
             headline = line[0].text
             if headline:
                 headline = headline.split(":")[0].lower()
                 if headline == "betreff":
                     value = line[1].text_content().strip()
-                    value = value.split("-->")[1] # there is some html comment with a script tag in front of the text which we remove
-                    data[headline] = " ".join(value.split()) # remove all multiple spaces from the string
+                    value = value.split("-->")[1]               # there is some html comment with a script tag in front of the text which we remove
+                    data[headline] = " ".join(value.split())    # remove all multiple spaces from the string
                 elif headline in ['status', 'verfasser', u'federführend']:
                     data[headline] = line[1].text.strip()
                 elif headline == "beratungsfolge":
-                    data['consultation'] = self.process_consultation_list(line[1])
-                    # we start of with a table inside the second td which has a first row of layout 1px images, so we ignore that
+                    # the actual list will be in the next row inside a table, so we only set a marker
+                    consultation_list_start = True
+                elif consultation_list_start:
+                    data['consultation'] = self.process_consultation_list(line[0])
+                    dates = [m['date'] for m in data['consultation']]
+                    dates.append(data['last_discussed'])
+                    data['last_discussed'] = max(dates) # get the highest date
+                    print data['last_discussed']
+                    consultation_list_start = False # set the marker to False again as we have read it
                 # we simply ignore the rest (there might not be much more actually)
-                #
+
         # the actual text comes after the table in a div but it's not valid XML or HTML this using regex
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
+        pprint.pprint(data)
         self.db.documents.save(data)
         time.sleep(1)
 
@@ -106,7 +124,6 @@ class DocumentParser(RISParser):
                 name = link.text
                 # TODO: save it
             
-        import pprint
         pprint.pprint(data)
         print
         return
@@ -171,6 +188,6 @@ class DocumentParser(RISParser):
 
 url = "http://ratsinfo.aachen.de/bi/vo020.asp?VOLFDNR=%s"
 p = DocumentParser(url)
-p.process()
+p.process(force = False)
 
 
