@@ -17,7 +17,7 @@ class MeetingParser(RISParser):
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
-            months = 1):
+            months = 12):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
         super(MeetingParser, self).__init__(url, base_url = base_url)
@@ -81,8 +81,6 @@ class MeetingParser(RISParser):
             elem = {}
             for e in item.iterchildren():
                 elem[e.tag] = e.text
-
-
 
             section = [elem['tofnum'], elem['tofunum'], elem['tofuunum']]
             section = [x for x in section if x!="0"]
