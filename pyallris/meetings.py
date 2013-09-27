@@ -22,9 +22,6 @@ class MeetingParser(RISParser):
         self.tzinfo = tzinfo
         super(MeetingParser, self).__init__(url, base_url = base_url)
 
-        # this will be moved to the second stage
-        self.db.meetings.remove()
-
         end = datetime.date.today()
         start = end - datetime.timedelta(months*31) # kinda rough computation here
 
