@@ -21,9 +21,6 @@ class AgendaItemParser(RISParser):
         self.tzinfo = tzinfo
         super(AgendaItemParser, self).__init__(url)
 
-        # this will be moved to the second stage
-        self.db.agenda_items.remove()
-
     def process(self):
         """process meetings"""
 
