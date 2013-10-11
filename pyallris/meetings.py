@@ -3,6 +3,7 @@ from lxml import objectify, etree
 import pymongo
 import datetime
 import pytz
+import uuid
 from pytz import timezone
 from utils import parse_date
 import pytz
@@ -14,6 +15,7 @@ class MeetingParser(RISParser):
     """parse the list of meetings for 1 year back from now"""
     
     agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
+    city = "Aachen"
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
@@ -47,15 +49,19 @@ class MeetingParser(RISParser):
             try:
                 result = self.process_agenda(silfdnr)
                 meeting.update(result)
+                print "ok"
             except Exception, e:
                 meeting['ERROR'] = True
                 print e
-            meeting['_id'] = int(meeting['silfdnr'])
+            meeting['meeting_id'] = int(meeting['silfdnr'])
+            meeting['_id'] = "%s:%s" %(self.city, silfdnr)
+            meeting['city'] = self.city
             self.db.meetings.save(meeting)
 
     def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
+        print "processing agenda at %s" %url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
@@ -86,9 +92,10 @@ class MeetingParser(RISParser):
             record['tops'].append(elem)
         return record
 
-url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
-sp = MeetingParser(url, base_url = base_url)
-sp.process()
+if __name__=="__main__":
+    url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+    sp = MeetingParser(url, base_url = base_url)
+    sp.process()
 
 

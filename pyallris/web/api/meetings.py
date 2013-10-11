@@ -14,10 +14,13 @@ class Meetings(Handler):
         return result
 
     @asjson()
-    def get(self):
+    def get(self, city = "Aachen"):
         """return a certain amount of meetings"""
         limit = max(int(self.request.args.get("l", "10")), 50)
-        meetings = self.app.mongodb.meetings.find({'ERROR': {"$exists": False} } ).sort("start_date", pymongo.DESCENDING ).limit(limit)
+        meetings = self.app.mongodb.meetings.find({
+            'ERROR': {"$exists": False},
+            'city' : city,
+        } ).sort("start_date", pymongo.DESCENDING ).limit(limit)
         return self.process(meetings)
 
 

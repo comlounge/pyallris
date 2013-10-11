@@ -6,7 +6,7 @@ class Meeting(Handler):
     @asjson()
     def get(self, mid):
 
-        meeting = self.app.mongodb.meetings.find_one({'_id': int(mid) } )
+        meeting = self.app.mongodb.meetings.find_one({'_id': mid } )
 
         tolfdnrs = []
         for top in meeting['tops']:
