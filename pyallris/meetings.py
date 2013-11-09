@@ -7,6 +7,7 @@ import uuid
 from pytz import timezone
 from utils import parse_date
 import pytz
+import argparse
 utc = pytz.utc
 
 from base import RISParser
@@ -15,14 +16,14 @@ class MeetingParser(RISParser):
     """parse the list of meetings for 1 year back from now"""
     
     agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
-    city = "Aachen"
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 12,
+            **kwargs):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        super(MeetingParser, self).__init__(url, base_url = base_url)
+        super(MeetingParser, self).__init__(url, base_url = base_url, **kwargs)
 
         end = datetime.date.today()
         start = end - datetime.timedelta(months*31) # kinda rough computation here
@@ -93,9 +94,32 @@ class MeetingParser(RISParser):
         return record
 
 if __name__=="__main__":
-    url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-    base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
-    sp = MeetingParser(url, base_url = base_url)
+    parser = argparse.ArgumentParser(description='process meetings')
+    parser.add_argument('-c', '--city', metavar='CITY', 
+        required = True,
+        help='the city code for the city to parse, e.g. "aachen"', dest="city")
+    parser.add_argument('-b', '--base_url', metavar='URL', 
+        required = True,
+        help='base URL of the ALLRIS installation, e.g. http://www.berlin.de/ba-marzahn-hellersdorf/bvv-online/. si020.asp etc. should not be included', 
+        dest="base_url")
+    parser.add_argument('--mongodb_host', default="localhost", metavar='HOST', help='mongodb host', dest="mongodb_host")
+    parser.add_argument('--mongodb_port', default=27017, type=int, metavar='PORT', help='mongodb port', dest="mongodb_port")
+    parser.add_argument('--mongodb_name', default="allris", metavar='DB_NAME', help='name of mongodb database to use', dest="mongodb_name")
+    args = parser.parse_args()
+
+    #city = "Aachen"
+    #url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    #base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+    url = args.base_url+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    base_url = args.base_url + "/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+    sp = MeetingParser(
+        url, 
+        base_url = base_url,
+        city = args.city,
+        mongodb_host = args.mongodb_host,
+        mongodb_port = args.mongodb_port,
+        mongodb_name = args.mongodb_name,
+    )
     sp.process()
 
 

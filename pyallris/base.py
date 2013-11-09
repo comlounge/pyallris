@@ -25,17 +25,32 @@ class RISParser(object):
 
     """
 
-    def __init__(self, url, base_url = "/", db="ratsinfo"):
+    def __init__(self, 
+            url, 
+            base_url = "/", 
+            city = None,
+            mongodb_host="localhost",
+            mongodb_port=27017,
+            mongodb_name='allris',
+        ):
         """initialize the RIS parser with the base URL of the system (for computing absolute URLs) and the URL to parse
 
         :param url: The main URL to start parsing from.
         :param base_url: The base url of the system. This can be used to construct absolute URLs
             as the system only provides relative URLs in it's HTML source
+        :param city: city name to use (default to `None`)
+        :param mongodb_host: hostname of the mongodb instance to use (defaults to localhost)
+        :param mongodb_port: port mongodb instance to use (defaults to 27017)
+        :param mongodb_name: name of the mongodb databse to use (defaults to allris)
         """
 
         self.base_url = base_url
         self.url = url
-        self.db = pymongo.Connection()[db]
+        self.db = pymongo.MongoClient(
+            host = mongodb_host,
+            port = mongodb_port,
+        )[mongodb_name]
+        self.city = city
 
     def parse_html(self, url):
         """start up a parser and return the tree for further processing"""
