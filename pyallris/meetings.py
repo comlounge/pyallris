@@ -110,8 +110,11 @@ if __name__=="__main__":
     #city = "Aachen"
     #url = "http://ratsinfo.aachen.de/bi/to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
     #base_url = "http://ratsinfo.aachen.de/bi/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
-    url = args.base_url+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-    base_url = args.base_url + "/si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+    bu = args.base_url
+    if not bu.endswith("/"):
+        bu = bu + "/"
+    url = bu+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    base_url = bu+ "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
     sp = MeetingParser(
         url, 
         base_url = base_url,

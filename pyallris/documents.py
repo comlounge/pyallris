@@ -36,11 +36,12 @@ class DocumentParser(RISParser):
 
     def __init__(self, url,
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 12,
+            **kwargs):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
         self.consultation_list_start = False 
-        super(DocumentParser, self).__init__(url)
+        super(DocumentParser, self).__init__(url, **kwargs)
 
         # this will be moved to the second stage
         #self.db.documents.remove()
