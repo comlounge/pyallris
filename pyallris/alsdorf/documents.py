@@ -13,7 +13,7 @@ class AlsdorfDocumentParser(DocumentParser):
         else:
             return "\n".join(lines)
 
-    def parse_consultation_list_headline(self, line, data):
+    def noparse_consultation_list_headline(self, line, data):
         """parse the consultation list for alsdorf"""
         data['consultation'] = self.process_consultation_list(line[1]) # consultation list table is in the next td
         dates = [m['date'] for m in data['consultation']]
@@ -25,6 +25,6 @@ class AlsdorfDocumentParser(DocumentParser):
 
 if __name__ == "__main__":
     url = "http://ratsinfo.alsdorf.de/bi/vo020.asp?VOLFDNR=%s"
-    sp = AlsdorfDocumentParser(url)
+    sp = AlsdorfDocumentParser(url, db="ratsinfo")
     sp.process()
 

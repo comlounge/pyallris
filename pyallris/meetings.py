@@ -19,10 +19,10 @@ class MeetingParser(RISParser):
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 12, **kw):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        super(MeetingParser, self).__init__(url, base_url = base_url)
+        super(MeetingParser, self).__init__(url, base_url = base_url, **kw)
 
         end = datetime.date.today()
         start = end - datetime.timedelta(months*31) # kinda rough computation here
@@ -53,7 +53,7 @@ class MeetingParser(RISParser):
             except Exception, e:
                 meeting['ERROR'] = True
                 print e
-            meeting['meeting_id'] = int(meeting['silfdnr'])
+            meeting['meeting_id'] = str(meeting['silfdnr'])
             meeting['_id'] = "%s:%s" %(self.city, silfdnr)
             meeting['city'] = self.city
             self.db.meetings.save(meeting)

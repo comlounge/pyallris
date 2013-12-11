@@ -4,9 +4,12 @@ import pymongo
 class Document(Handler):
 
     @asjson()
-    def get(self, did):
+    def get(self, did, city = "Aachen"):
 
-        document = self.app.mongodb.documents.find_one({'_id': did} )
+        document = self.app.mongodb.documents.find_one({
+            'document_id': did,
+            'city' : city,
+        })
         return document
 
 

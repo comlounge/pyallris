@@ -35,6 +35,7 @@ class RISParser(object):
 
         self.base_url = base_url
         self.url = url
+        print db
         self.db = pymongo.Connection()[db]
 
     def parse_html(self, url):

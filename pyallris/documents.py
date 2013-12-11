@@ -36,11 +36,11 @@ class DocumentParser(RISParser):
 
     def __init__(self, url,
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 12, **kw):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
         self.consultation_list_start = False 
-        super(DocumentParser, self).__init__(url)
+        super(DocumentParser, self).__init__(url, **kw)
 
         # this will be moved to the second stage
         #self.db.documents.remove()
@@ -49,7 +49,7 @@ class DocumentParser(RISParser):
         """preprocess the incoming text, e.g. do some encoding etc."""
         return text
 
-    def process(self, force = False):
+    def process(self, force = True):
         """process documents"""
 
         # get all the ids of the documents we need to parse
@@ -60,12 +60,15 @@ class DocumentParser(RISParser):
         print "processing %s agenda items" %agenda_items.count()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         print "processing %s documents" %len(document_ids)
-        #self.process_document("11066")
+        #self.process_document("2567", force=True)
+        #self.process_document("2535", force=True)
+        #self.process_document("2536", force=True)
         #self.process_document("11057")
         #self.process_document("11199") # this has attachments
         #self.process_document("11136", True) # has some problem reading a missing TO link
         #self.process_document("2015", True) # has some problem reading a missing TO link
         #return
+        #print document_ids
         for document_id in document_ids:
             self.process_document(document_id, force = force)
         return
@@ -77,17 +80,21 @@ class DocumentParser(RISParser):
         :param force: if True then reread the document regardless of whether 
             we have it already in the db or not
         """
+        print "trying document ", document_id
         found = True
         try:
-            data = self.db.documents.findOne({
+            data = self.db.documents.find_one({
                 '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : str(document_id),
                 'city' : self.city,
             })
-        except:
+        except Exception, e:
+            print "problem when trying to find document id %s: %s" %(document_id, e)
             # we did not find any old data, so lets create an empty one
             found = False
+        if data is None:
             data = {
+                '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : document_id,
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'last_updated'   : datetime.datetime.now(),# for our own reference
@@ -115,7 +122,6 @@ class DocumentParser(RISParser):
                 headline = headline.split(":")[0].lower()
                 if headline[-1]==":":
                     headline = headline[:-1]
-                print headline
                 if headline == "betreff":
                     value = line[1].text_content().strip()
                     value = value.split("-->")[1]               # there is some html comment with a script tag in front of the text which we remove
@@ -133,7 +139,7 @@ class DocumentParser(RISParser):
         # the actual text comes after the table in a div but it's not valid XML or HTML this using regex
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
-        pprint.pprint(data)
+        #pprint.pprint(data)
         data = utils.update_md5(data, self.MD5_FIELDS)
         data['city'] = self.city
         self.db.documents.save(data)
@@ -205,8 +211,10 @@ class DocumentParser(RISParser):
             Here we make every meeting a separate entry, we can group them together later again if we want to.
             """
             # now we need to parse the actual list
-            # those lists
-            if len(line) == 3:
+            # those lists can either be two lines or 1. They either start with a date or some committee name
+            
+            if line[1].attrib.get("class","") == "text1":
+            #if len(line) == 3:
                 # the order is "color/status", name of committee / link to TOP, more info
                 status = line[0].attrib['title'].lower()
                 # we define a head dict here which can be shared for the other lines
@@ -214,8 +222,9 @@ class DocumentParser(RISParser):
                 item = {
                     'status'    : status,               # color coded status, like "Bereit", "Erledigt"
                     'committee' : line[1].text.strip(), # name of committee, e.g. "Finanzausschuss", unfort. without id
-                    'action'    : line[2].text.strip(), # e.g. "Kenntnisnahme", "Entscheidung"
                 }
+                if len(line)>2:
+                    item['action'] = line[2].text.strip(), # e.g. "Kenntnisnahme", "Entscheidung"
             else:
                 # this is about line 2 with lots of more stuff to process
                 # date can be text or a link with that text

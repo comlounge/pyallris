@@ -7,7 +7,7 @@ class AlsdorfAgendaItemParser(AgendaItemParser):
 
 
 url = "http://ratsinfo.alsdorf.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
-sp = AlsdorfAgendaItemParser(url)
+sp = AlsdorfAgendaItemParser(url, db="ratsinfo")
 sp.process()
 
 

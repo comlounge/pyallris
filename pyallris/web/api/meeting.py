@@ -4,14 +4,18 @@ import pymongo
 class Meeting(Handler):
 
     @asjson()
-    def get(self, mid):
-
-        meeting = self.app.mongodb.meetings.find_one({'_id': mid } )
+    def get(self, mid, city="Aachen"):
+        """retrieve one meeting identified by a city and a meeting id (=silfdnr)"""
+    
+        city = city.capitalize()
+        meeting = self.app.mongodb.meetings.find_one({
+            'meeting_id': mid,
+            'city': city,
+        })
 
         tolfdnrs = []
         for top in meeting['tops']:
             tolfdnrs.append(top['tolfdnr'])
-        print tolfdnrs
 
         # get a table with all the details
         top_infos_raw = self.app.mongodb.agenda_items.find({'_id': {'$in' : tolfdnrs}})

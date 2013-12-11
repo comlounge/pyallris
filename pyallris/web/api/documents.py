@@ -6,10 +6,10 @@ import math
 class Documents(Handler):
 
     @asjson()
-    def get(self):
+    def get(self, city = "Aachen"):
         limit = min(int(self.request.args.get("limit", "10")), 50)
         offset = int(self.request.args.get("offset", "0"))
-        city = self.request.args.get("city", "Aachen").capitalize()
+        city = city.capitalize()
 
         # compute default values for from and to as date objects
         date_from = datetime.date.today() - datetime.timedelta(days=365) # default is a year back
@@ -53,9 +53,9 @@ class Documents(Handler):
         if "from" in self.request.args:
             args['from'] = self.request.args['from']
         if (offset + limit) <= count:
-            metadata['next'] = self.url_for("api.documents", offset = limit+offset, _full = True, _append = True, **args)
+            metadata['next'] = self.url_for("api.documents", city = city.lower(), offset = limit+offset, _full = True, _append = True, **args)
         if offset != 0:
-            metadata['prev'] = self.url_for("api.documents", offset = offset-limit, _full = True, _append = True, **args)
+            metadata['prev'] = self.url_for("api.documents", city = city.lower(), offset = offset-limit, _full = True, _append = True, **args)
         result = {
             '_meta' : metadata,
             'results' : list(documents)

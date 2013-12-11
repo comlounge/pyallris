@@ -18,10 +18,10 @@ class AgendaItemParser(RISParser):
 
     def __init__(self, url,
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12):
+            months = 12, **kw):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        super(AgendaItemParser, self).__init__(url)
+        super(AgendaItemParser, self).__init__(url, **kw)
 
     def process(self):
         """process meetings"""
@@ -53,7 +53,7 @@ class AgendaItemParser(RISParser):
         root = etree.fromstring(xml, parser=parser)
         agenda_item = {
             '_id' : "%s:%s" %(self.city, tolfdnr),
-            'top_id' : tolfdnr,
+            'top_id' : str(tolfdnr),
         }
         for item in root[0].iterchildren():
             if item.tag == "rtfWP" and len(item) > 0:
