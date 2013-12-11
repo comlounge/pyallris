@@ -105,6 +105,7 @@ if __name__=="__main__":
     parser.add_argument('--mongodb_host', default="localhost", metavar='HOST', help='mongodb host', dest="mongodb_host")
     parser.add_argument('--mongodb_port', default=27017, type=int, metavar='PORT', help='mongodb port', dest="mongodb_port")
     parser.add_argument('--mongodb_name', default="allris", metavar='DB_NAME', help='name of mongodb database to use', dest="mongodb_name")
+    parser.add_argument('-f', '--force', action = "store_true", help='should meetings be parsed again even if they are already in the database?')
     args = parser.parse_args()
 
     #city = "Aachen"
@@ -122,6 +123,7 @@ if __name__=="__main__":
         mongodb_host = args.mongodb_host,
         mongodb_port = args.mongodb_port,
         mongodb_name = args.mongodb_name,
+        force = args.force
     )
     sp.process()
 
