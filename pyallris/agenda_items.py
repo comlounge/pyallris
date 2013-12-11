@@ -7,6 +7,7 @@ from pytz import timezone
 import pytz
 utc = pytz.utc
 import pprint
+import argparse
 
 from base import RISParser
 
@@ -18,10 +19,11 @@ class AgendaItemParser(RISParser):
 
     def __init__(self, url,
             tzinfo = timezone('Europe/Berlin'), 
-            months = 12, **kw):
+            months = 12,
+            **kwargs):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
-        super(AgendaItemParser, self).__init__(url, **kw)
+        super(AgendaItemParser, self).__init__(url, **kwargs)
 
     def process(self):
         """process meetings"""
@@ -74,8 +76,28 @@ class AgendaItemParser(RISParser):
         print "saved agenda item at ", url
 
 if __name__ == "__main__":
-    url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
-    sp = AgendaItemParser(url)
+    parser = argparse.ArgumentParser(description='process meetings')
+    parser.add_argument('-c', '--city', metavar='CITY', 
+        required = True,
+        help='the city code for the city to parse, e.g. "aachen"', dest="city")
+    parser.add_argument('-b', '--base_url', metavar='URL', 
+        required = True,
+        help='base URL of the ALLRIS installation, e.g. http://www.berlin.de/ba-marzahn-hellersdorf/bvv-online/. si020.asp etc. should not be included', 
+        dest="base_url")
+    parser.add_argument('--mongodb_host', default="localhost", metavar='HOST', help='mongodb host', dest="mongodb_host")
+    parser.add_argument('--mongodb_port', default=27017, type=int, metavar='PORT', help='mongodb port', dest="mongodb_port")
+    parser.add_argument('--mongodb_name', default="allris", metavar='DB_NAME', help='name of mongodb database to use', dest="mongodb_name")
+    args = parser.parse_args()
+    bu = args.base_url
+    if not bu.endswith("/"):
+        bu = bu + "/"
+    url = bu + "to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
+    sp = AgendaItemParser(url, 
+        city = args.city,
+        mongodb_host = args.mongodb_host,
+        mongodb_port = args.mongodb_port,
+        mongodb_name = args.mongodb_name,
+    )
     sp.process()
 
 
