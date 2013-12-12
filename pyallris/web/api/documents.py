@@ -9,7 +9,7 @@ class Documents(Handler):
     def get(self, city = "Aachen"):
         limit = min(int(self.request.args.get("limit", "10")), 50)
         offset = int(self.request.args.get("offset", "0"))
-        city = city.capitalize()
+        city = city.lower()
 
         # compute default values for from and to as date objects
         date_from = datetime.date.today() - datetime.timedelta(days=365) # default is a year back

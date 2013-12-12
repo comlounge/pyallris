@@ -20,7 +20,7 @@ class Meetings(Handler):
         print city
         meetings = self.app.mongodb.meetings.find({
             'ERROR': {"$exists": False},
-            'city' : city.capitalize(),
+            'city' : city.lower(),
         } ).sort("start_date", pymongo.DESCENDING ).limit(limit)
         return self.process(meetings, city = city)
 
