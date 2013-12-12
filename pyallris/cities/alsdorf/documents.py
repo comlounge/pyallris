@@ -6,7 +6,6 @@ class DocumentParser(BaseParser):
 
     def preprocess_text(self, text):
         """remove the <?xml encoding line if present as lxml cannot deal with it"""
-        print "preprocessed!"
         lines = text.split("\n")
         if "<?xml" in lines[0]:
             return "\n".join(lines[1:])

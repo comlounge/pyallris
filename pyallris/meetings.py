@@ -8,6 +8,7 @@ from pytz import timezone
 from utils import parse_date
 import pytz
 import argparse
+import sys
 utc = pytz.utc
 
 from base import RISParser
@@ -16,6 +17,7 @@ class MeetingParser(RISParser):
     """parse the list of meetings for 1 year back from now"""
     
     agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
+    CLS_FILENAME = "meetings"
 
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
@@ -29,6 +31,23 @@ class MeetingParser(RISParser):
         start = end - datetime.timedelta(months*31) # kinda rough computation here
 
         self.timerange_url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
+
+    @classmethod
+    def construct_instance(cls, args):
+        """construct the parse instance"""
+        bu = args.base_url
+        if not bu.endswith("/"):
+            bu = bu + "/"
+        url = bu+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+        base_url = bu+ "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+        return cls(url,
+            base_url = base_url,
+            city = args.city,
+            mongodb_host = args.mongodb_host,
+            mongodb_port = args.mongodb_port,
+            mongodb_name = args.mongodb_name,
+            force = args.force
+        )
 
     def process(self):
         """process meetings"""
@@ -94,6 +113,9 @@ class MeetingParser(RISParser):
         return record
 
 if __name__=="__main__":
+    p = MeetingParser.from_args()
+    p.process()
+    sys.exit()
     parser = argparse.ArgumentParser(description='process meetings')
     parser.add_argument('-c', '--city', metavar='CITY', 
         required = True,

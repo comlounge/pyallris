@@ -8,6 +8,7 @@ import pytz
 utc = pytz.utc
 import pprint
 import argparse
+import sys
 
 from base import RISParser
 
@@ -15,7 +16,7 @@ class AgendaItemParser(RISParser):
     """parses all known agenda items and stores them in the database"""
 
     body_sel = CSSSelector('body')
-    city = "Aachen"
+    CLS_FILENAME = "agenda_items"
 
     def __init__(self, url,
             tzinfo = timezone('Europe/Berlin'), 
@@ -24,6 +25,21 @@ class AgendaItemParser(RISParser):
         self.utc = pytz.utc
         self.tzinfo = tzinfo
         super(AgendaItemParser, self).__init__(url, **kwargs)
+
+    @classmethod
+    def construct_instance(cls, args):
+        """construct the parse instance"""
+        bu = args.base_url
+        if not bu.endswith("/"):
+            bu = bu + "/"
+        url = bu + "to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
+        return cls(url,
+            city = args.city,
+            mongodb_host = args.mongodb_host,
+            mongodb_port = args.mongodb_port,
+            mongodb_name = args.mongodb_name,
+            force = args.force
+        )
 
     def process(self):
         """process meetings"""
@@ -76,6 +92,9 @@ class AgendaItemParser(RISParser):
         print "saved agenda item at ", url
 
 if __name__ == "__main__":
+    p = AgendaItemParser.from_args()
+    p.process()
+    sys.exit()
     parser = argparse.ArgumentParser(description='process meetings')
     parser.add_argument('-c', '--city', metavar='CITY', 
         required = True,

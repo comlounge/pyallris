@@ -275,7 +275,6 @@ if __name__ == "__main__":
     #p.process(force = True)
 
     p = DocumentParser.from_args()
-    print p
     p.process()
     sys.exit()
 
