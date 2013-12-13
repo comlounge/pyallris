@@ -88,6 +88,16 @@ class AgendaItemParser(RISParser):
             pprint.pprint(agenda_item)
             return
         agenda_item['city'] = self.city
+        ws = agenda_item.get("toptext", "").lower()
+        tr = agenda_item.get("transcript", "").lower()
+        a = ws+" "+tr
+        streets = {} # this stores official street name => street._id
+        for street in self.streets.keys():
+            if " "+street in a:
+                s = self.streets[street]
+                streets[s['original']] = s['_id']
+                print "FOUND IT!", street, ws
+        agenda_item['streets'] = streets
         self.db.agenda_items.save(agenda_item)
         print "saved agenda item at ", url
 
