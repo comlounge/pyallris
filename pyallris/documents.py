@@ -164,12 +164,10 @@ class DocumentParser(RISParser):
         for d in data.get("docs"):
             ws = ws + " " + d
         streets = {} # this stores official street name => street._id
-        print data.get("betreff")
         for street in self.streets.keys():
             if " "+street in ws:
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
-                print "FOUND IT!", street
         data['streets'] = streets
         self.db.documents.save(data)
         time.sleep(1)

@@ -96,7 +96,6 @@ class AgendaItemParser(RISParser):
             if " "+street in a:
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
-                print "FOUND IT!", street, ws
         agenda_item['streets'] = streets
         self.db.agenda_items.save(agenda_item)
         print "saved agenda item at ", url
