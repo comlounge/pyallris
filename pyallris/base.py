@@ -1,9 +1,7 @@
 import requests
 from lxml import etree, html
-from StringIO import StringIO
 import pymongo
 import argparse
-import os
 import importlib
 
 __all__ = ['RISParser', 'ParseError']
@@ -57,7 +55,12 @@ class RISParser(object):
             host = mongodb_host,
             port = mongodb_port,
         )[mongodb_name]
-        self.city = city
+        self.city = city.lower()
+
+        # try to read all the streets for the given city
+        streets = self.db.streets.find({'city' : self.city})
+        # each street has a name we search for and an id we want to store in the record
+        self.streets = dict([(s['name'], s) for s in streets])
 
     @classmethod
     def construct_instance(cls, args):
