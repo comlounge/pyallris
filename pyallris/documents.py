@@ -164,11 +164,21 @@ class DocumentParser(RISParser):
         for d in data.get("docs"):
             ws = ws + " " + d
         streets = {} # this stores official street name => street._id
+        geolocations = {}
+        geolocation = None
         for street in self.streets.keys():
             if " "+street in ws:
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
+                if "lat" in s:
+                    geolocations[s['original']] = {'lat' : s["lat"], 'lon' : s["lng"]}
+                    # we now store the location of the first street in our database for the geo index
+                    if geolocation is None:
+                        geolocation = {'lat' : s["lat"], 'lon' : s["lng"]}
         data['streets'] = streets
+        data['geolocations'] = geolocations
+        data['geolocation'] = geolocation
+        print streets
         self.db.documents.save(data)
         time.sleep(1)
 
