@@ -11,6 +11,7 @@ import uuid
 import pprint
 import utils
 import argparse
+import urlparse
 import sys
 
 from base import RISParser
@@ -111,9 +112,11 @@ class DocumentParser(RISParser):
             # we did not find any old data, so lets create an empty one
             found = False
         if data is None:
+            import pdb; pdb.set_trace()
             data = {
                 '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : document_id,
+                'document_url' : self.url %document_id,
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'last_updated'   : datetime.datetime.now(),# for our own reference
             }
