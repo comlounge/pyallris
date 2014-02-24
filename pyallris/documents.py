@@ -11,6 +11,7 @@ import uuid
 import pprint
 import utils
 import argparse
+import urlparse
 import sys
 
 from base import RISParser
@@ -111,9 +112,11 @@ class DocumentParser(RISParser):
             # we did not find any old data, so lets create an empty one
             found = False
         if data is None:
+            import pdb; pdb.set_trace()
             data = {
                 '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : document_id,
+                'document_url' : self.url %document_id,
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'last_updated'   : datetime.datetime.now(),# for our own reference
             }
@@ -164,11 +167,21 @@ class DocumentParser(RISParser):
         for d in data.get("docs"):
             ws = ws + " " + d
         streets = {} # this stores official street name => street._id
+        geolocations = {}
+        geolocation = None
         for street in self.streets.keys():
             if " "+street in ws:
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
+                if "lat" in s:
+                    geolocations[s['original']] = {'lat' : s["lat"], 'lon' : s["lng"]}
+                    # we now store the location of the first street in our database for the geo index
+                    if geolocation is None:
+                        geolocation = {'lat' : s["lat"], 'lon' : s["lng"]}
         data['streets'] = streets
+        data['geolocations'] = geolocations
+        data['geolocation'] = geolocation
+        print streets
         self.db.documents.save(data)
         time.sleep(1)
 
