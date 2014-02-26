@@ -7,7 +7,7 @@ class Meeting(Handler):
     def get(self, mid, city="Aachen"):
         """retrieve one meeting identified by a city and a meeting id (=silfdnr)"""
     
-        city = city.capitalize()
+        city = city.lower()
         meeting = self.app.mongodb.meetings.find_one({
             'meeting_id': mid,
             'city': city,

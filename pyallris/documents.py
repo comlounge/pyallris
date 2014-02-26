@@ -99,7 +99,7 @@ class DocumentParser(RISParser):
         :param force: if True then reread the document regardless of whether 
             we have it already in the db or not
         """
-        print "trying document ", document_id
+        #print "trying document ", document_id
         found = True
         try:
             data = self.db.documents.find_one({
@@ -124,7 +124,7 @@ class DocumentParser(RISParser):
             print "%s already read" %document_id
             return
         url = self.url %document_id
-        print "reading", url
+        #print "reading", url
 
         self.response = response = requests.get(url)
         if "noauth" in response.url:
@@ -160,7 +160,6 @@ class DocumentParser(RISParser):
         # the actual text comes after the table in a div but it's not valid XML or HTML this using regex
         docs = body_re.findall(self.response.text)
         data['docs'] = docs
-        #pprint.pprint(data)
         data = utils.update_md5(data, self.MD5_FIELDS)
         data['city'] = self.city
         ws = data.get("betreff", "").lower()
@@ -181,7 +180,6 @@ class DocumentParser(RISParser):
         data['streets'] = streets
         data['geolocations'] = geolocations
         data['geolocation'] = geolocation
-        print streets
         self.db.documents.save(data)
         time.sleep(1)
 
@@ -196,9 +194,6 @@ class DocumentParser(RISParser):
                 href = link.attrib["href"]
                 name = link.text
                 # TODO: save it
-            
-        pprint.pprint(data)
-        print
         return
 
     def parse_consultation_list_headline(self, line, data):
@@ -279,7 +274,7 @@ class DocumentParser(RISParser):
                     item['silfdnr'] = None # no link to TOP. should not be possible but happens (TODO: Bugreport?)
                     item['meeting'] = line[3].text.strip()   # here we have no link but the text is in the TD directly
                     item['PYALLRIS_WARNING'] = "the agenda item in the consultation list on the web page does not contain a link to the actual meeting"
-                    print "WARNING:", item['PYALLRIS_WARNING']
+                    #print "WARNING:", item['PYALLRIS_WARNING']
                 item['decision'] = line[4].text.strip()         # e.g. "ungeändert beschlossen"
                 toplfdnr = None
                 if len(line[6]) > 0:

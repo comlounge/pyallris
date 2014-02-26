@@ -51,8 +51,8 @@ class AgendaItemParser(RISParser):
             'city' : self.city
         })
         tolfdnrs = []
-        for meeting in meetings:
-            print "*** processing meeting %s" %meeting['meeting_id']
+        for meeting in meetings:    
+            #print "*** processing meeting %s" %meeting['meeting_id']
             for top in meeting['tops']:
                 tolfdnrs.append(top['tolfdnr'])
                 self.process_agenda_item(top['tolfdnr'])
@@ -77,8 +77,11 @@ class AgendaItemParser(RISParser):
             if item.tag == "rtfWP" and len(item) > 0:
                 try:
                     agenda_item["transcript"] = etree.tostring(item[0][1][0])
-                except:
-                    print etree.tostring(item)
+                except Exception, e:
+                    print "an exception happened during processing the transcript"
+                    print e
+                    print "for item:", etree.tostring(item)
+                    print "and url:", url
                     raise
             else:
                 agenda_item[item.tag] = item.text
@@ -98,7 +101,7 @@ class AgendaItemParser(RISParser):
                 streets[s['original']] = s['_id']
         agenda_item['streets'] = streets
         self.db.agenda_items.save(agenda_item)
-        print "saved agenda item at ", url
+        #print "saved agenda item at ", url
 
 if __name__ == "__main__":
     p = AgendaItemParser.from_args()

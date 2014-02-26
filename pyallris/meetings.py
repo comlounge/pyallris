@@ -71,9 +71,9 @@ class MeetingParser(RISParser):
             try:
                 result = self.process_agenda(silfdnr)
                 meeting.update(result)
-                print "ok"
             except Exception, e:
                 meeting['ERROR'] = True
+                print "exception when trying to parse meeting %s" %silfdnr
                 print e
             meeting['meeting_id'] = str(meeting['silfdnr'])
             meeting['_id'] = "%s:%s" %(self.city, silfdnr)
@@ -83,7 +83,7 @@ class MeetingParser(RISParser):
     def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
-        print "processing agenda at %s" %url
+        #print "processing agenda at %s" %url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
