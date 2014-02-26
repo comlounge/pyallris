@@ -27,8 +27,10 @@ class MeetingParser(RISParser):
         self.tzinfo = tzinfo
         super(MeetingParser, self).__init__(url, base_url = base_url, **kwargs)
 
-        end = datetime.date.today()
+        today = datetime.date.today()
+        end = today + datetime.timedelta(months*1) # look one month into the future
         start = end - datetime.timedelta(months*31) # kinda rough computation here
+        print start, end
 
         self.timerange_url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
 
