@@ -34,7 +34,6 @@ def update_md5(d, fields=[]):
             h.update(s)
         except Exception, e: 
             print e
-            import pdb; pdb.set_trace()
     md5 = h.hexdigest()
     if d.has_key("md5"):
         if d['md5'] != md5:
