@@ -49,7 +49,7 @@ class AgendaItemParser(RISParser):
         meetings = self.db.meetings.find({
             'ERROR' : {'$exists' : False },
             'city' : self.city
-        })
+        }, timeout=False)
         tolfdnrs = []
         for meeting in meetings:    
             #print "*** processing meeting %s" %meeting['meeting_id']

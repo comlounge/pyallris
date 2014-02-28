@@ -74,8 +74,8 @@ class DocumentParser(RISParser):
         # get all the ids of the documents we need to parse
      
         agenda_items = self.db.agenda_items.find({
-            "city" : self.city
-        })
+            "city" : self.city,
+        }, timeout=False)
         print "processing %s agenda items" %agenda_items.count()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         print "processing %s documents" %len(document_ids)
@@ -112,7 +112,6 @@ class DocumentParser(RISParser):
             # we did not find any old data, so lets create an empty one
             found = False
         if data is None:
-            import pdb; pdb.set_trace()
             data = {
                 '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : document_id,
