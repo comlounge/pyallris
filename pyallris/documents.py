@@ -113,11 +113,11 @@ class DocumentParser(RISParser):
             found = False
         if data is None:
             data = {
-                '_id' : "%s:%s" %(self.city, document_id),
-                'document_id' : document_id,
-                'document_url' : self.url %document_id,
+                '_id'            : "%s:%s" %(self.city, document_id),
+                'document_id'    : document_id,
+                'document_url'   : self.url %document_id,
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
-                'last_updated'   : datetime.datetime.now(),# for our own reference
+                'created'        : datetime.datetime.now(),# for our own reference
             }
         if found and not force: 
             print "%s already read" %document_id
