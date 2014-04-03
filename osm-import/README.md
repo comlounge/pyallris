@@ -18,6 +18,15 @@ call ./prepare.sh to download all date and compile tools
 You also need to have postgresql installed but I forgot the details. One tool uses it though for storing the data
 
 in config.py you can define the mongodb host etc.
+(copy if from config.py.in)
+
+Python installs:
+
+pip install numpy==1.7.1
+pip install matplotlib==1.1.0
+pip install git+git://github.com/werner2101/python-osm.git
+pip install imposm
+
 
 Importing city data
 ===================
