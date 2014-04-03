@@ -2,6 +2,7 @@
 
 city=$1
 relation=$2
+rs=$3
 # aachen = 62564
 # alsdorf = 157993
 # wuerselen = 157994
@@ -23,6 +24,6 @@ echo "generating $city-streets.osm"
 
 echo
 echo "importing streets for $city"
-python osm-import.py $city-streets.osm $city
+python osm-import.py $city-streets.osm $city $rs
 
 
