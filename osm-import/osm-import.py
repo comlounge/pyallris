@@ -99,14 +99,17 @@ if __name__ == '__main__':
     filename = sys.argv[1]          # osm input file 
     city = sys.argv[2].lower()      # city name in lowercase
     rs = sys.argv[3]                # regionalschlüssel
+    print filename
+    print city
+    print rs
 
     connection = MongoClient(config.DB_HOST, config.DB_PORT)
     db = connection[config.DB_NAME]
-    db.locations.remove({'rs': rs})
-    db.locations.ensure_index('osmid', unique=True)
+    #db.locations.remove({'rs': rs})
+    #db.locations.ensure_index('osmid', unique=True) # this breaks because one location in wuerselen seems to be duplicated
     db.locations.ensure_index('name')
     db.locations.ensure_index([('nodes.location', '2dsphere')])
-    db.streets.remove()
+    #db.streets.remove()
 
     print "Sammle nodes..."
     nodecollector = NodeCollector()
