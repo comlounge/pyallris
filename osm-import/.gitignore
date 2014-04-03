@@ -1,0 +1,8 @@
+*.poly
+*.osm
+osmosis
+config
+lib
+bin
+config.py
+osmfilter
