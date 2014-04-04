@@ -28,5 +28,8 @@ setup(name='pyallris',
       entry_points="""
       [paste.app_factory]
       main = pyallris.web.app:app
+      [console_scripts]
+      geolocate_streets= pyallris.scripts.get_street_geodata:run
+
       """,
       )

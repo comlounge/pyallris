@@ -54,11 +54,8 @@ class GeoDataRetriever(object):
                 street['lng'] = result['lon']
                 self.db.streets.save(street)
 
-
-
-
-if __name__=="__main__":
-
+def run():
+    """run the script"""
     # build the argparser to parse mongodb details
     parser = argparse.ArgumentParser(description='process document')
     parser.add_argument('-c', '--city', metavar='CITY', 
@@ -74,5 +71,11 @@ if __name__=="__main__":
             mongodb_port = args.mongodb_port,
             mongodb_name = args.mongodb_name,
         )
+    print "fetching data"
     c()
+
+
+if __name__=="__main__":
+    run()
+
 
