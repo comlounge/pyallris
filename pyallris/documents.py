@@ -164,11 +164,12 @@ class DocumentParser(RISParser):
         ws = data.get("betreff", "").lower()
         for d in data.get("docs"):
             ws = ws + " " + d
+        words = re.findall(r'[^,;\s]+', ws)
         streets = {} # this stores official street name => street._id
         geolocations = {}
         geolocation = None
         for street in self.streets.keys():
-            if " "+street in ws:
+            if street in words:
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
                 if "lat" in s:
