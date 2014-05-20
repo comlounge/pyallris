@@ -13,7 +13,8 @@ class Documents(Handler):
 
         # compute default values for from and to as date objects
         date_from = datetime.date.today() - datetime.timedelta(days=365) # default is a year back
-        date_to = datetime.date.today()
+        dt = datetime.timedelta(days=30)
+        date_to = datetime.date.today() + dt # we compute 30 days in front
 
         # override from request if possible
         if "from" in self.request.args:
