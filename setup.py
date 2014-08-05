@@ -24,6 +24,7 @@ setup(name='pyallris',
         "cssselect",
         "mongogogo",
         "starflyer",
+        "html2text",
       ],
       entry_points="""
       [paste.app_factory]
