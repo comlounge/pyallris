@@ -100,7 +100,7 @@ class AgendaItemParser(RISParser):
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
         #agenda_item['streets'] = streets
-        pprint.pprint(agenda_item)
+        #pprint.pprint(agenda_item)
         self.db.agenda_items.save(agenda_item)
         #print "saved agenda item at ", url
 
