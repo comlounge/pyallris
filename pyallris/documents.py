@@ -13,6 +13,8 @@ import utils
 import argparse
 import urlparse
 import sys
+import copy
+import html2text
 
 from base import RISParser
 import re
@@ -86,7 +88,11 @@ class DocumentParser(RISParser):
         #self.process_document("11199") # this has attachments
         #self.process_document("11136", True) # has some problem reading a missing TO link
         #self.process_document("2015", True) # has some problem reading a missing TO link
-        #return
+        #self.process_document("12405", True) # does not find geolocation
+        #self.process_document("10893", True) # has last_discussed on 3.9. but last event was 17.4.
+        #self.process_document("12515", True) # had the same date for 2 events in consultation list but was fixed
+        self.process_document("11768", True) # had the same date for 2 events in consultation list but was fixed
+        return
         #print document_ids
         for document_id in document_ids:
             self.process_document(document_id, force = self.force)
@@ -99,14 +105,15 @@ class DocumentParser(RISParser):
         :param force: if True then reread the document regardless of whether 
             we have it already in the db or not
         """
-        #print "trying document ", document_id
-        found = True
+        print "trying document %s:%s" %(self.city, document_id)
+        found = False
         try:
             data = self.db.documents.find_one({
                 '_id' : "%s:%s" %(self.city, document_id),
                 'document_id' : str(document_id),
                 'city' : self.city,
             })
+            found = True
         except Exception, e:
             print "problem when trying to find document id %s: %s" %(document_id, e)
             # we did not find any old data, so lets create an empty one
@@ -119,6 +126,7 @@ class DocumentParser(RISParser):
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'created'        : datetime.datetime.now(),# for our own reference
             }
+            found = False
         if found and not force: 
             print "%s already read" %document_id
             return
@@ -143,9 +151,8 @@ class DocumentParser(RISParser):
                 if headline[-1]==":":
                     headline = headline[:-1]
                 if headline == "betreff":
-                    value = line[1].text_content().strip()
-                    value = value.split("-->")[1]               # there is some html comment with a script tag in front of the text which we remove
-                    data[headline] = " ".join(value.split())    # remove all multiple spaces from the string
+                    value = html2text.html2text(etree.tostring(line[1]))
+                    data[headline] = value
                 elif headline in ['status', 'verfasser', u'federführend']:
                     data[headline] = line[1].text.strip()
                 elif headline == "beratungsfolge":
@@ -161,15 +168,18 @@ class DocumentParser(RISParser):
         data['docs'] = docs
         data = utils.update_md5(data, self.MD5_FIELDS)
         data['city'] = self.city
-        ws = data.get("betreff", "").lower()
+        plaintext = data.get("betreff", "").lower()
+        md = ""
         for d in data.get("docs"):
-            ws = ws + " " + d
-        words = re.findall(r'[^,/;\s]+', ws)
+            plaintext = plaintext + " " + html2text.html2text(d.lower())
+            md = md + "\n\n\n--------------------------------------------------------------------------------\n\n\n" + html2text.html2text(d)
+        data['markdown'] = md
         streets = {} # this stores official street name => street._id
         geolocations = {}
         geolocation = None
         for street in self.streets.keys():
-            if street in words:
+            if street in plaintext:
+                print "found street", street
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
                 if "lat" in s:
@@ -182,7 +192,6 @@ class DocumentParser(RISParser):
         data['geolocation'] = geolocation
         self.db.documents.save(data)
         time.sleep(1)
-
         return # we do attachments later, for now we save that stuff without
 
         # get the attachments if possible
@@ -246,9 +255,9 @@ class DocumentParser(RISParser):
             """
             # now we need to parse the actual list
             # those lists can either be two lines or 1. They either start with a date or some committee name
-            
+           
+            # the first line is the committee name
             if line[1].attrib.get("class","") == "text1":
-            #if len(line) == 3:
                 # the order is "color/status", name of committee / link to TOP, more info
                 status = line[0].attrib['title'].lower()
                 # we define a head dict here which can be shared for the other lines
@@ -263,9 +272,11 @@ class DocumentParser(RISParser):
                 # this is about line 2 with lots of more stuff to process
                 # date can be text or a link with that text
                 if len(line[1]) == 1: # we have a link (and ignore it)
+                    print "date 1"
                     item['date'] = datetime.datetime.strptime(line[1][0].text.strip(), "%d.%m.%Y")
                 else:
                     item['date'] = datetime.datetime.strptime(line[1].text.strip(), "%d.%m.%Y")
+                    print item['date']
                 if len(line[2]):
                     form = line[2][0] # form with silfdnr and toplfdnr but only in link (action="to010.asp?topSelected=57023")
                     item['silfdnr'] = form[0].attrib['value']
@@ -282,6 +293,9 @@ class DocumentParser(RISParser):
                     toplfdnr = form[0].attrib['value']
                 item['toplfdnr'] = toplfdnr                     # actually the id of the transcript 
                 result.append(item)
+
+                # in case we have more consultations for the same committee, we will copy the item now so we have a new object to work on and don't overwrite data (like the date)
+                item = copy.copy(item)
             i=i+1
         return result
             
