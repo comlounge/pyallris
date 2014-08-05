@@ -91,8 +91,8 @@ class DocumentParser(RISParser):
         #self.process_document("12405", True) # does not find geolocation
         #self.process_document("10893", True) # has last_discussed on 3.9. but last event was 17.4.
         #self.process_document("12515", True) # had the same date for 2 events in consultation list but was fixed
-        self.process_document("11768", True) # had the same date for 2 events in consultation list but was fixed
-        return
+        #self.process_document("11768", True) # had wrong last_discussed
+        #return
         #print document_ids
         for document_id in document_ids:
             self.process_document(document_id, force = self.force)
@@ -126,12 +126,13 @@ class DocumentParser(RISParser):
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'created'        : datetime.datetime.now(),# for our own reference
             }
+            print "found is false"
             found = False
         if found and not force: 
             print "%s already read" %document_id
             return
         url = self.url %document_id
-        #print "reading", url
+        print "reading", url
 
         self.response = response = requests.get(url)
         if "noauth" in response.url:
@@ -226,7 +227,6 @@ class DocumentParser(RISParser):
         """
         data['consultation'] = self.process_consultation_list(line[0]) # line is the tr, line[0] the td with the table inside
         dates = [m['date'] for m in data['consultation']]
-        dates.append(data['last_discussed'])
         data['last_discussed'] = max(dates) # get the highest date
         self.consultation_list_start = False
         return data
@@ -272,11 +272,9 @@ class DocumentParser(RISParser):
                 # this is about line 2 with lots of more stuff to process
                 # date can be text or a link with that text
                 if len(line[1]) == 1: # we have a link (and ignore it)
-                    print "date 1"
                     item['date'] = datetime.datetime.strptime(line[1][0].text.strip(), "%d.%m.%Y")
                 else:
                     item['date'] = datetime.datetime.strptime(line[1].text.strip(), "%d.%m.%Y")
-                    print item['date']
                 if len(line[2]):
                     form = line[2][0] # form with silfdnr and toplfdnr but only in link (action="to010.asp?topSelected=57023")
                     item['silfdnr'] = form[0].attrib['value']
