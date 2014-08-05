@@ -177,7 +177,7 @@ class DocumentParser(RISParser):
                     # we now store the location of the first street in our database for the geo index
                     if geolocation is None:
                         geolocation = {'lat' : s["lat"], 'lon' : s["lng"]}
-        data['streets'] = streets
+        #data['streets'] = streets
         data['geolocations'] = geolocations
         data['geolocation'] = geolocation
         self.db.documents.save(data)
