@@ -81,16 +81,6 @@ class DocumentParser(RISParser):
         print "processing %s agenda items" %agenda_items.count()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         print "processing %s documents" %len(document_ids)
-        #self.process_document("2567", force=True)
-        #self.process_document("2535", force=True)
-        #self.process_document("2536", force=True)
-        #self.process_document("11057")
-        #self.process_document("11199") # this has attachments
-        #self.process_document("11136", True) # has some problem reading a missing TO link
-        #self.process_document("2015", True) # has some problem reading a missing TO link
-        #self.process_document("12405", True) # does not find geolocation
-        #self.process_document("10893", True) # has last_discussed on 3.9. but last event was 17.4.
-        #self.process_document("12515", True) # had the same date for 2 events in consultation list but was fixed
         #self.process_document("11768", True) # had wrong last_discussed
         #return
         #print document_ids
