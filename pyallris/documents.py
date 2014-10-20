@@ -4,6 +4,7 @@ from lxml import etree, html
 from lxml.cssselect import CSSSelector
 import datetime
 import pytz
+import re
 from pytz import timezone
 utc = pytz.utc
 import time
@@ -82,6 +83,8 @@ class DocumentParser(RISParser):
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         print "processing %s documents" %len(document_ids)
         #self.process_document("11768", True) # had wrong last_discussed
+        #self.process_document("10745", True) # street is "Ludwig Forum"
+        #self.process_document("12811", True) # street is "Hof" but shouldn't be
         #return
         #print document_ids
         for document_id in document_ids:
@@ -169,8 +172,7 @@ class DocumentParser(RISParser):
         geolocations = {}
         geolocation = None
         for street in self.streets.keys():
-            if street in plaintext:
-                print "found street", street
+            if re.search(r"\b" + re.escape(street) + r"\b", plaintext):
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
                 if "lat" in s:
@@ -181,6 +183,7 @@ class DocumentParser(RISParser):
         #data['streets'] = streets
         data['geolocations'] = geolocations
         data['geolocation'] = geolocation
+        #pprint.pprint(data)
         self.db.documents.save(data)
         time.sleep(1)
         return # we do attachments later, for now we save that stuff without
