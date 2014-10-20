@@ -15,6 +15,7 @@ import urlparse
 import sys
 import copy
 import html2text
+import codecs
 
 from base import RISParser
 import re
@@ -92,6 +93,10 @@ class DocumentParser(RISParser):
         #self.process_document("10893", True) # has last_discussed on 3.9. but last event was 17.4.
         #self.process_document("12515", True) # had the same date for 2 events in consultation list but was fixed
         #self.process_document("11768", True) # had wrong last_discussed
+        #self.process_document("11525", True) # had wrong last_discussed
+        #self.process_document("12387", True) # had a traceback on dates
+        #self.process_document("10579", True) # consultation list not found
+        #self.process_document("12623", True) # umlauts in betreff
         #return
         #print document_ids
         for document_id in document_ids:
@@ -126,7 +131,6 @@ class DocumentParser(RISParser):
                 'last_discussed' : TIME_MARKER,            # date of last appearance in a meeting
                 'created'        : datetime.datetime.now(),# for our own reference
             }
-            print "found is false"
             found = False
         if found and not force: 
             print "%s already read" %document_id
@@ -142,8 +146,16 @@ class DocumentParser(RISParser):
         text = self.preprocess_text(response.text)
         doc = html.fromstring(text)
 
-        # Beratungsfolge-Table checken
-        table = self.table_css(doc)[0] # lets hope we always have this table
+        # Check info block
+        try:
+            table = self.table_css(doc)[0] # lets hope we always have this table
+        except: # for some reason on some runs this can't be found but the next one it can so we are saving it for now.
+            print "**** INFO TABLE NOT FOUND, ABORTING document processing"
+            fn = "/tmp/pyallris-error-%s-%s.html" %(self.city, document_id)
+            fp = codecs.open(fn, "w", "utf-8")
+            fp.write(text)
+            fp.close()
+            return
         self.consultation_list_start = False
         for line in table:
             headline = line[0].text
@@ -152,7 +164,9 @@ class DocumentParser(RISParser):
                 if headline[-1]==":":
                     headline = headline[:-1]
                 if headline == "betreff":
-                    value = html2text.html2text(etree.tostring(line[1]))
+                    e = etree.tostring(line[1], encoding="utf-8")
+                    e = unicode(e, "utf-8") # as etree does not return unicode
+                    value = html2text.html2text(e)
                     data[headline] = value
                 elif headline in ['status', 'verfasser', u'federführend']:
                     data[headline] = line[1].text.strip()
@@ -176,15 +190,20 @@ class DocumentParser(RISParser):
             md = md + "\n\n\n--------------------------------------------------------------------------------\n\n\n" + html2text.html2text(d)
         data['markdown'] = md
         streets = {} # this stores official street name => street._id
-        geolocations = {}
+        geolocations = []
         geolocation = None
         for street in self.streets.keys():
             if street in plaintext:
-                print "found street", street
                 s = self.streets[street]
                 streets[s['original']] = s['_id']
                 if "lat" in s:
-                    geolocations[s['original']] = {'lat' : s["lat"], 'lon' : s["lng"]}
+                    sname = s['original'].replace(".",":") # we have to replace dots for mongodb keys. So we use a :
+                    loc = {
+                        'name' : s['original'],
+                        'lat' : s["lat"], 
+                        'lon' : s["lng"]
+                    }
+                    geolocations.append(loc)
                     # we now store the location of the first street in our database for the geo index
                     if geolocation is None:
                         geolocation = {'lat' : s["lat"], 'lon' : s["lng"]}
@@ -227,7 +246,8 @@ class DocumentParser(RISParser):
         """
         data['consultation'] = self.process_consultation_list(line[0]) # line is the tr, line[0] the td with the table inside
         dates = [m['date'] for m in data['consultation']]
-        data['last_discussed'] = max(dates) # get the highest date
+        if len(dates)>0:
+            data['last_discussed'] = max(dates) # get the highest date
         self.consultation_list_start = False
         return data
 
