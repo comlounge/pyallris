@@ -54,6 +54,7 @@ class MeetingParser(RISParser):
     def process(self):
         """process meetings"""
         parser = etree.XMLParser(recover=True)
+        print self.timerange_url
         r = requests.get(self.timerange_url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
