@@ -59,7 +59,8 @@ class MeetingParser(RISParser):
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
 
-        for item in root[1].iterchildren():
+        start_at = root.find("list")
+        for item in start_at.iterchildren():
             meeting = {}
             for e in item.iterchildren():
                 meeting[e.tag] = e.text
@@ -69,6 +70,7 @@ class MeetingParser(RISParser):
             meeting['tz_start_date'] = parse_date(meeting['sisbvcs'], tzinfo=utc).astimezone(self.tzinfo)
             meeting['tz_end_date'] = parse_date(meeting['sisevcs'], tzinfo=utc).astimezone(self.tzinfo)
             silfdnr = meeting['silfdnr']
+            print "processing meeting %s" %silfdnr
             try:
                 result = self.process_agenda(silfdnr)
                 meeting.update(result)
@@ -84,7 +86,7 @@ class MeetingParser(RISParser):
     def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
-        #print "processing agenda at %s" %url
+        print "processing agenda at %s" %url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
