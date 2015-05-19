@@ -98,9 +98,10 @@ class RISParser(object):
 
         # try to retrieve the correct class to use in case we have a specialized class in cities/<city>/<module>
         name = "cities.%s.%s" %(args.city, cls.CLS_FILENAME) 
+        cls_name = cls.__name__
         try:
             m = importlib.import_module(name)
-            cls = m.DocumentParser
+            cls = getattr(m, cls_name)
         except ImportError:
             # no specialized version of the parser for the given city was found
             pass
