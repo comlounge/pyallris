@@ -19,6 +19,9 @@ class MeetingParser(RISParser):
     agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
     CLS_FILENAME = "meetings"
 
+    URL_POSTIX = "to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    BASE_URL_POSTFIX = "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
             months = 12,
@@ -40,8 +43,8 @@ class MeetingParser(RISParser):
         bu = args.base_url
         if not bu.endswith("/"):
             bu = bu + "/"
-        url = bu+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-        base_url = bu+ "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+        url = bu + self.URL_POSTIX
+        base_url = bu + self.BASE_URL_POSTFIX
         return cls(url,
             base_url = base_url,
             city = args.city,
@@ -59,7 +62,8 @@ class MeetingParser(RISParser):
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
 
-        for item in root[1].iterchildren():
+        start_at = root.find("list")
+        for item in start_at.iterchildren():
             meeting = {}
             for e in item.iterchildren():
                 meeting[e.tag] = e.text
@@ -84,7 +88,7 @@ class MeetingParser(RISParser):
     def process_agenda(self, silfdnr):
         """process tagesordnung for sitzung"""
         url = self.url %silfdnr
-        #print "processing agenda at %s" %url
+        print "processing agenda at %s" %url
 
         r = requests.get(url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
