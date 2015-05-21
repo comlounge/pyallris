@@ -35,3 +35,5 @@ Importing city data
 ./do_city.sh city relation regionalschlüssel
 
 Data as above.
+
+After that run python the script in scripts/ to merge locations and streets.
