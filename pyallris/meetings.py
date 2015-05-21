@@ -42,7 +42,7 @@ class MeetingParser(RISParser):
         bu = args.base_url
         if not bu.endswith("/"):
             bu = bu + "/"
-        url = bu + cls.URL_POSTIX
+        url = bu + cls.URL_POSTFIX
         base_url = bu + cls.BASE_URL_POSTFIX
         return cls(url,
             base_url = base_url,
