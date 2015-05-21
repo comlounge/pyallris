@@ -6,6 +6,7 @@ rs=$3
 # aachen = 62564
 # alsdorf = 157993
 # wuerselen = 157994
+# herzogenrath = 157992
 echo "working on $city"
 
 echo
