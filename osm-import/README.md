@@ -16,6 +16,7 @@ Preparing the package
 call ./prepare.sh to download all date and compile tools
 
 You also need to have postgresql installed but I forgot the details. One tool uses it though for storing the data
+and tokyo-cabinet and protobuf
 
 in config.py you can define the mongodb host etc.
 (copy if from config.py.in)

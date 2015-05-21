@@ -49,7 +49,7 @@ class AgendaItemParser(RISParser):
         meetings = self.db.meetings.find({
             'ERROR' : {'$exists' : False },
             'city' : self.city
-        }, timeout=False)
+        })
         tolfdnrs = []
         for meeting in meetings:    
             #print "*** processing meeting %s" %meeting['meeting_id']
@@ -102,7 +102,7 @@ class AgendaItemParser(RISParser):
         #agenda_item['streets'] = streets
         #pprint.pprint(agenda_item)
         self.db.agenda_items.save(agenda_item)
-        #print "saved agenda item at ", url
+        print "saved agenda item at ", url
 
 if __name__ == "__main__":
     p = AgendaItemParser.from_args()

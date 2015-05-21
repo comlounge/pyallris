@@ -79,7 +79,7 @@ class DocumentParser(RISParser):
      
         agenda_items = self.db.agenda_items.find({
             "city" : self.city,
-        }, timeout=False)
+        })
         print "processing %s agenda items" %agenda_items.count()
         document_ids = [item['volfdnr'] for item in agenda_items if "volfdnr" in item]
         print "processing %s documents" %len(document_ids)

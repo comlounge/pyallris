@@ -82,7 +82,6 @@ class RISParser(object):
     def from_args(cls):
         """parse the arguments from the command line and create a class instance from that"""
 
-
         parser = argparse.ArgumentParser(description='process document')
         parser.add_argument('-c', '--city', metavar='CITY', 
             required = True,
@@ -97,12 +96,12 @@ class RISParser(object):
         parser.add_argument('-f', '--force', action = "store_true", help='should objects be parsed again even if they are already in the database?')
         args = parser.parse_args()
 
-
         # try to retrieve the correct class to use in case we have a specialized class in cities/<city>/<module>
         name = "cities.%s.%s" %(args.city, cls.CLS_FILENAME) 
+        cls_name = cls.__name__
         try:
             m = importlib.import_module(name)
-            cls = m.DocumentParser
+            cls = getattr(m, cls_name)
         except ImportError:
             # no specialized version of the parser for the given city was found
             pass

@@ -19,6 +19,9 @@ class MeetingParser(RISParser):
     agenda_item_url = "http://ratsinfo.aachen.de/bi/to020.asp?selfaction=ws&template=xyz&TOLFDNR=%s"
     CLS_FILENAME = "meetings"
 
+    URL_POSTFIX = "to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
+    BASE_URL_POSTFIX = "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+
     def __init__(self, url, base_url="/",
             tzinfo = timezone('Europe/Berlin'), 
             months = 12,
@@ -30,7 +33,6 @@ class MeetingParser(RISParser):
         today = datetime.date.today()
         end = today + datetime.timedelta(months*1) # look one month into the future
         start = end - datetime.timedelta(months*31) # kinda rough computation here
-        print start, end
 
         self.timerange_url = self.base_url %(start.strftime("%d.%m.%Y"), end.strftime("%d.%m.%Y"))
 
@@ -40,8 +42,8 @@ class MeetingParser(RISParser):
         bu = args.base_url
         if not bu.endswith("/"):
             bu = bu + "/"
-        url = bu+"to010.asp?selfaction=ws&template=xyz&SILFDNR=%s"
-        base_url = bu+ "si010.asp?selfaction=ws&template=xyz&kaldatvon=%s&kaldatbis=%s"
+        url = bu + cls.URL_POSTFIX
+        base_url = bu + cls.BASE_URL_POSTFIX
         return cls(url,
             base_url = base_url,
             city = args.city,
@@ -54,7 +56,6 @@ class MeetingParser(RISParser):
     def process(self):
         """process meetings"""
         parser = etree.XMLParser(recover=True)
-        print self.timerange_url
         r = requests.get(self.timerange_url)
         xml = r.text.encode('ascii','xmlcharrefreplace') 
         root = etree.fromstring(xml, parser=parser)
