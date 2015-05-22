@@ -68,6 +68,12 @@ class DocumentParser(RISParser):
             force = args.force
         )
 
+    def before_save(self, data):
+        """hook which is called with all the data for a document just before it's
+        saved to the database. You have to return a data object yourself
+        """
+        return data
+
     def preprocess_text(self, text):
         """preprocess the incoming text, e.g. do some encoding etc."""
         return text
@@ -199,6 +205,7 @@ class DocumentParser(RISParser):
         #data['streets'] = streets
         data['geolocations'] = geolocations
         data['geolocation'] = geolocation
+        data = self.before_save(data)
         #pprint.pprint(data)
         self.db.documents.save(data)
         time.sleep(1)
