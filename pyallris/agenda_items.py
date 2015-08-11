@@ -51,6 +51,7 @@ class AgendaItemParser(RISParser):
             'city' : self.city
         })
         tolfdnrs = []
+        meetings.batch_size(10)
         for meeting in meetings:    
             #print "*** processing meeting %s" %meeting['meeting_id']
             for top in meeting['tops']:
